@@ -159,6 +159,9 @@ const state = {
   clock: { running: false, startedAt: null, accumulated: 0 },
   playback: { eventId: null, cueId: null, playing: false, loading: false },
   cueKeyMode: {},
+  checklist: [],
+  checklistEdit: false,
+  checklistVisible: true,
   urls: new Map(),
 };
 
@@ -190,6 +193,16 @@ const els = {
   btnAddEvent: document.getElementById('btn-add-event'),
   btnPrint: document.getElementById('btn-print'),
   btnHelp: document.getElementById('btn-help'),
+  layout: document.getElementById('layout'),
+  checklistPanel: document.getElementById('checklist-panel'),
+  checklist: document.getElementById('checklist'),
+  checklistProgressBar: document.getElementById('checklist-progress-bar'),
+  checklistProgressText: document.getElementById('checklist-progress-text'),
+  checklistEditBtn: document.getElementById('btn-checklist-edit'),
+  checklistResetBtn: document.getElementById('btn-checklist-reset'),
+  checklistAddWrap: document.getElementById('checklist-add-wrap'),
+  checklistAddBtn: document.getElementById('btn-checklist-add'),
+  btnChecklist: document.getElementById('btn-checklist'),
   videoStage: document.getElementById('video-stage'),
   video: document.getElementById('video-el'),
   videoHint: document.getElementById('video-hint'),
@@ -282,6 +295,7 @@ function filteredEvents() {
 function renderAll() {
   renderEventList();
   renderDetail();
+  renderChecklist();
   updateTransport();
 }
 
@@ -406,6 +420,7 @@ function renderDetail() {
     <div class="drop-hint">
       Press <strong>→</strong> for the next act, then <strong>1</strong> to start its first cue. <strong>Shift + →</strong> does both.
       <br>${keyHint}
+      <br><strong>B</strong> = blackout (cut audio immediately).
       <br>Drop audio files anywhere on this panel to add them as cues.
     </div>
   `;
@@ -527,6 +542,278 @@ function updateProgress() {
   if (bar) bar.style.width = (pct * 100) + '%';
 }
 
+/* ---------- run-of-show checklist ---------- */
+
+function normalizeChecklist(items) {
+  return (Array.isArray(items) ? items : []).map((item) => ({
+    id: uid(),
+    label: String(item.label || 'Untitled'),
+    checked: Boolean(item.checked),
+    eventId: item.eventId || null,
+    cueId: item.cueId || null,
+    children: normalizeChecklist(item.children),
+  }));
+}
+
+function flattenChecklist(items) {
+  const out = [];
+  for (const item of items) {
+    out.push(item);
+    if (Array.isArray(item.children)) out.push(...flattenChecklist(item.children));
+  }
+  return out;
+}
+
+function findChecklistItem(id, items = state.checklist) {
+  for (const item of items) {
+    if (item.id === id) return item;
+    if (Array.isArray(item.children)) {
+      const found = findChecklistItem(id, item.children);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+function removeChecklistItem(id, items = state.checklist) {
+  for (let i = 0; i < items.length; i++) {
+    if (items[i].id === id) {
+      items.splice(i, 1);
+      return true;
+    }
+    if (Array.isArray(items[i].children) && removeChecklistItem(id, items[i].children)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function checklistItemHtml(item, depth) {
+  const hasChildren = Array.isArray(item.children) && item.children.length > 0;
+  return `
+    <li class="checklist-item" data-checklist-id="${item.id}">
+      <div class="checklist-row">
+        <input type="checkbox" class="checklist-check" ${item.checked ? 'checked' : ''} aria-label="${escapeHtml(item.label)}">
+        <span class="checklist-label ${item.checked ? 'done' : ''}">${escapeHtml(item.label)}</span>
+        ${item.eventId ? '<span class="checklist-link-dot" title="Linked to audio"></span>' : ''}
+        ${state.checklistEdit ? `
+          <button class="icon-btn checklist-action" data-checklist-act="link" type="button" title="Link to audio">🔗</button>
+          <button class="icon-btn checklist-action" data-checklist-act="rename" type="button" title="Rename">✎</button>
+          ${depth === 0 ? `<button class="icon-btn checklist-action" data-checklist-act="add-child" type="button" title="Add sub-item">＋</button>` : ''}
+          <button class="icon-btn danger checklist-action" data-checklist-act="delete" type="button" title="Delete">✕</button>
+        ` : ''}
+      </div>
+      ${hasChildren ? `<ul class="checklist-children">${item.children.map((child) => checklistItemHtml(child, depth + 1)).join('')}</ul>` : ''}
+    </li>
+  `;
+}
+
+function renderChecklist() {
+  if (!els.checklist) return;
+
+  if (!state.checklist.length) {
+    els.checklist.innerHTML = `<li class="checklist-empty">No checklist items yet.</li>`;
+  } else {
+    els.checklist.innerHTML = state.checklist.map((item) => checklistItemHtml(item, 0)).join('');
+  }
+
+  updateChecklistProgress();
+  els.checklistAddWrap.hidden = !state.checklistEdit;
+  els.checklistEditBtn.textContent = state.checklistEdit ? 'Done' : 'Edit';
+  els.checklistEditBtn.classList.toggle('active', state.checklistEdit);
+}
+
+function updateChecklistProgress() {
+  if (!els.checklistProgressBar || !els.checklistProgressText) return;
+  const all = flattenChecklist(state.checklist);
+  const done = all.filter((item) => item.checked).length;
+  const pct = all.length ? (done / all.length) * 100 : 0;
+  els.checklistProgressBar.style.width = pct + '%';
+  els.checklistProgressText.textContent = `${done} / ${all.length} done`;
+}
+
+function saveChecklist() {
+  saveMeta('checklist', state.checklist).catch(console.error);
+}
+
+function autoCheckChecklistForCue(eventId, cueId) {
+  if (!eventId || !cueId) return;
+
+  const ev = state.events.find((e) => e.id === eventId);
+  if (!ev) return;
+  const firstCueId = ev.cues[0]?.id;
+  let changed = false;
+
+  const visit = (items) => {
+    for (const item of items) {
+      if (item.eventId === eventId) {
+        if (item.cueId === cueId || (!item.cueId && cueId === firstCueId)) {
+          if (!item.checked) {
+            item.checked = true;
+            changed = true;
+          }
+        }
+      }
+      if (Array.isArray(item.children)) visit(item.children);
+    }
+  };
+  visit(state.checklist);
+
+  const checkParents = (items) => {
+    for (const item of items) {
+      if (Array.isArray(item.children) && item.children.length) {
+        checkParents(item.children);
+        if (item.children.every((child) => child.checked) && !item.checked) {
+          item.checked = true;
+          changed = true;
+        }
+      }
+    }
+  };
+  checkParents(state.checklist);
+
+  if (changed) {
+    saveChecklist();
+    renderChecklist();
+  }
+}
+
+async function loadOrSeedChecklist() {
+  try {
+    const record = await dbGet('meta', 'checklist');
+    if (record && Array.isArray(record.value)) {
+      state.checklist = normalizeChecklist(record.value);
+      return;
+    }
+  } catch (err) {
+    console.error(err);
+  }
+
+  try {
+    const response = await fetch('show.json', { cache: 'no-store' });
+    if (!response.ok) return;
+    const data = await response.json();
+    if (Array.isArray(data.checklist)) {
+      state.checklist = normalizeChecklist(data.checklist);
+      saveChecklist();
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+async function resetChecklist() {
+  const ok = await confirmDialog(
+    'Reset checklist?',
+    'This reloads the tentative checklist from show.json and clears the check marks and any edits.',
+    'Reset checklist'
+  );
+  if (!ok) return;
+
+  try {
+    const response = await fetch('show.json', { cache: 'no-store' });
+    if (!response.ok) throw new Error('HTTP ' + response.status);
+    const data = await response.json();
+    if (!Array.isArray(data.checklist)) throw new Error('No checklist in show.json');
+    state.checklist = normalizeChecklist(data.checklist);
+    state.checklistEdit = false;
+    saveChecklist();
+    renderChecklist();
+    toast('Checklist reset.');
+  } catch (err) {
+    console.error(err);
+    toast('Could not reload the checklist.', 'error');
+  }
+}
+
+function openChecklistItemModal({ title, label, onSave }) {
+  openModal(`
+    <form id="checklist-item-form" class="modal-form">
+      <h3>${escapeHtml(title)}</h3>
+      <label>Item name
+        <input name="label" required maxlength="160" value="${escapeHtml(label || '')}">
+      </label>
+      <div class="modal-actions">
+        <button type="button" class="btn" data-close>Cancel</button>
+        <button type="submit" class="btn btn-accent">Save</button>
+      </div>
+    </form>
+  `);
+
+  const form = $('#checklist-item-form');
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const value = String(new FormData(form).get('label') || '').trim();
+    if (!value) return;
+    onSave(value);
+    els.modal.close();
+  });
+}
+
+function openChecklistLinkModal(item) {
+  const eventOptions = state.events.map((ev) =>
+    `<option value="${ev.id}" ${item.eventId === ev.id ? 'selected' : ''}>${escapeHtml(ev.name)}</option>`
+  ).join('');
+
+  openModal(`
+    <form id="checklist-link-form" class="modal-form">
+      <h3>Link checklist item</h3>
+      <p class="modal-text">“${escapeHtml(item.label)}” will check automatically when the linked audio plays.</p>
+      <label>Event
+        <select name="eventId">
+          <option value="">— No event —</option>
+          ${eventOptions}
+        </select>
+      </label>
+      <label>Cue
+        <select name="cueId">
+          <option value="">Whole act / first cue</option>
+        </select>
+      </label>
+      <div class="modal-actions">
+        <button type="button" class="btn" data-close>Cancel</button>
+        <button type="submit" class="btn btn-accent">Save link</button>
+      </div>
+    </form>
+  `);
+
+  const form = $('#checklist-link-form');
+  const eventSelect = form.elements.eventId;
+  const cueSelect = form.elements.cueId;
+
+  const fillCues = () => {
+    const ev = state.events.find((e) => e.id === eventSelect.value);
+    const options = ev
+      ? ev.cues.map((cue, index) =>
+          `<option value="${cue.id}" ${item.cueId === cue.id ? 'selected' : ''}>${index + 1}. ${escapeHtml(cue.label)}</option>`
+        ).join('')
+      : '';
+    cueSelect.innerHTML = `<option value="">Whole act / first cue</option>${options}`;
+  };
+
+  eventSelect.addEventListener('change', fillCues);
+  fillCues();
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    item.eventId = eventSelect.value || null;
+    item.cueId = cueSelect.value || null;
+    saveChecklist();
+    renderChecklist();
+    els.modal.close();
+    toast('Checklist link saved.');
+  });
+}
+
+function setChecklistVisible(visible) {
+  state.checklistVisible = visible;
+  els.layout.classList.toggle('with-checklist', visible);
+  els.checklistPanel.classList.toggle('hidden', !visible);
+  els.btnChecklist.classList.toggle('active', visible);
+  els.btnChecklist.setAttribute('aria-pressed', String(visible));
+  saveMeta('checklistVisible', visible).catch(console.error);
+}
+
 /* ---------- playback ---------- */
 
 function targetVolume(cue) {
@@ -610,6 +897,8 @@ async function startPlayback() {
     state.cueKeyMode[state.playback.eventId] = true;
   }
 
+  autoCheckChecklistForCue(state.playback.eventId, state.playback.cueId);
+
   fadeTo(targetVolume(cue), cue.fadeIn ?? 0.3);
   markEventLive(state.playback.eventId);
   startTicker();
@@ -671,6 +960,20 @@ function stopPlayback() {
   } else {
     finish();
   }
+}
+
+function blackout() {
+  if (!player.src) return;
+
+  cancelFade();
+  stopTicker();
+  player.pause();
+  try { player.currentTime = 0; } catch (err) { /* ignore */ }
+  player.volume = 0;
+  state.playback.playing = false;
+  updateTransport();
+  renderDetail();
+  toast('Blackout');
 }
 
 function clearLoadedCue() {
@@ -1422,11 +1725,13 @@ function openHelp() {
         <kbd>Shift + →</kbd><span>Next act with audio + start its first cue</span>
         <kbd>Shift + ←</kbd><span>Previous act with audio + start its first cue</span>
         <kbd>N</kbd><span>Next cue</span>
-        <kbd>B</kbd><span>Previous cue / restart</span>
+        <kbd>P</kbd><span>Previous cue / restart</span>
+        <kbd>B</kbd><span>Blackout — cut audio immediately</span>
         <kbd>Esc</kbd><span>Stop with fade</span>
         <kbd>↑ / ↓</kbd><span>Select previous / next event</span>
         <kbd>?</kbd><span>Show this help</span>
       </div>
+      <p class="modal-text">In the checklist, use <strong>Edit → 🔗</strong> to link an item to an event or cue. Linked items check themselves when that audio plays, and clicking a linked item jumps to it.</p>
       <p class="modal-text">Audio files and the run of show are stored locally in this browser. Use the same browser and the same folder to keep your show.</p>
       <div class="modal-actions">
         <button type="button" class="btn btn-accent" data-close>Got it</button>
@@ -1668,6 +1973,11 @@ function onGlobalKeydown(e) {
     case 'b':
     case 'B':
       e.preventDefault();
+      blackout();
+      break;
+    case 'p':
+    case 'P':
+      e.preventDefault();
       prevCue();
       break;
     case 'Escape':
@@ -1832,6 +2142,96 @@ function bindEvents() {
   els.btnPrint.addEventListener('click', () => {
     buildPrintSheet();
     window.print();
+  });
+
+  els.btnChecklist.addEventListener('click', () => setChecklistVisible(!state.checklistVisible));
+
+  els.checklistEditBtn.addEventListener('click', () => {
+    state.checklistEdit = !state.checklistEdit;
+    renderChecklist();
+  });
+
+  els.checklistResetBtn.addEventListener('click', resetChecklist);
+
+  els.checklistAddBtn.addEventListener('click', () => {
+    openChecklistItemModal({
+      title: 'Add checklist item',
+      label: '',
+      onSave: (label) => {
+        state.checklist.push({ id: uid(), label, checked: false, children: [] });
+        saveChecklist();
+        renderChecklist();
+      },
+    });
+  });
+
+  els.checklist.addEventListener('change', (e) => {
+    if (!e.target.classList.contains('checklist-check')) return;
+    const li = e.target.closest('[data-checklist-id]');
+    if (!li) return;
+    const item = findChecklistItem(li.dataset.checklistId);
+    if (!item) return;
+    item.checked = e.target.checked;
+    saveChecklist();
+    renderChecklist();
+  });
+
+  els.checklist.addEventListener('click', (e) => {
+    const action = e.target.closest('[data-checklist-act]');
+    if (action) {
+      const li = action.closest('[data-checklist-id]');
+      if (!li) return;
+      const item = findChecklistItem(li.dataset.checklistId);
+      if (!item) return;
+
+      if (action.dataset.checklistAct === 'link') {
+        openChecklistLinkModal(item);
+      } else if (action.dataset.checklistAct === 'rename') {
+        openChecklistItemModal({
+          title: 'Rename item',
+          label: item.label,
+          onSave: (label) => {
+            item.label = label;
+            saveChecklist();
+            renderChecklist();
+          },
+        });
+      } else if (action.dataset.checklistAct === 'add-child') {
+        openChecklistItemModal({
+          title: 'Add sub-item',
+          label: '',
+          onSave: (label) => {
+            if (!Array.isArray(item.children)) item.children = [];
+            item.children.push({ id: uid(), label, checked: false, children: [] });
+            saveChecklist();
+            renderChecklist();
+          },
+        });
+      } else if (action.dataset.checklistAct === 'delete') {
+        confirmDialog('Delete checklist item?', `“${item.label}” will be removed.`, 'Delete item').then((ok) => {
+          if (!ok) return;
+          removeChecklistItem(item.id);
+          saveChecklist();
+          renderChecklist();
+        });
+      }
+      return;
+    }
+
+    if (state.checklistEdit) return;
+
+    const label = e.target.closest('.checklist-label');
+    if (!label) return;
+    const li = label.closest('[data-checklist-id]');
+    if (!li) return;
+    const item = findChecklistItem(li.dataset.checklistId);
+    if (!item || !item.eventId) return;
+
+    selectEvent(item.eventId);
+    if (item.cueId) {
+      const cueRow = els.detail.querySelector(`[data-cue-id="${item.cueId}"]`);
+      if (cueRow) cueRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
   });
 
   els.search.addEventListener('input', () => {
@@ -2020,12 +2420,13 @@ async function init() {
   bindEvents();
 
   try {
-    const [events, settingsRecord, clockRecord, selectedRecord, seededRecord] = await Promise.all([
+    const [events, settingsRecord, clockRecord, selectedRecord, seededRecord, checklistVisibleRecord] = await Promise.all([
       dbGetAll('events'),
       dbGet('meta', 'settings'),
       dbGet('meta', 'clock'),
       dbGet('meta', 'selectedId'),
       dbGet('meta', 'seeded'),
+      dbGet('meta', 'checklistVisible'),
     ]);
 
     state.events = (events || []).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
@@ -2040,6 +2441,15 @@ async function init() {
     if (!state.events.length && !seededRecord?.value) {
       await seedFromShowFile();
     }
+
+    await loadOrSeedChecklist();
+
+    const savedChecklistVisible = checklistVisibleRecord?.value;
+    setChecklistVisible(
+      typeof savedChecklistVisible === 'boolean'
+        ? savedChecklistVisible
+        : window.innerWidth > 1200
+    );
   } catch (err) {
     console.error(err);
     toast('Could not load saved data. IndexedDB may be unavailable in this browser.', 'error');

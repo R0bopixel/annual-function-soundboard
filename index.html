@@ -31,12 +31,13 @@
     </div>
 
     <div class="top-actions">
+      <button class="btn" id="btn-checklist" type="button" aria-pressed="true">Checklist</button>
       <button class="btn" id="btn-print" type="button">Print run sheet</button>
       <button class="btn" id="btn-help" type="button">Shortcuts</button>
     </div>
   </header>
 
-  <main class="layout">
+  <main class="layout" id="layout">
     <aside class="sidebar">
       <div class="sidebar-head">
         <h2>Events <span class="count" id="event-count">0</span></h2>
@@ -49,6 +50,27 @@
     </aside>
 
     <section class="detail" id="detail"></section>
+
+    <aside class="checklist-panel hidden" id="checklist-panel">
+      <div class="checklist-head">
+        <div>
+          <h2>Run of show</h2>
+          <p class="checklist-sub">Tentative checklist</p>
+        </div>
+        <div class="checklist-head-actions">
+          <button class="clock-btn" id="btn-checklist-edit" type="button">Edit</button>
+          <button class="clock-btn ghost" id="btn-checklist-reset" type="button" title="Reload the tentative list">Reset</button>
+        </div>
+      </div>
+      <div class="checklist-progress">
+        <div class="checklist-progress-track"><span id="checklist-progress-bar"></span></div>
+        <div class="checklist-progress-text" id="checklist-progress-text">0 / 0</div>
+      </div>
+      <ul class="checklist" id="checklist"></ul>
+      <div class="checklist-add-wrap" id="checklist-add-wrap" hidden>
+        <button class="btn btn-accent" id="btn-checklist-add" type="button">+ Add act / item</button>
+      </div>
+    </aside>
   </main>
 
   <footer class="transport">
@@ -59,7 +81,7 @@
     </div>
 
     <div class="transport-controls">
-      <button class="tbtn" id="btn-prev" type="button" title="Previous cue (B)" aria-label="Previous cue"></button>
+      <button class="tbtn" id="btn-prev" type="button" title="Previous cue (P)" aria-label="Previous cue"></button>
       <button class="tbtn tbtn-play" id="btn-play" type="button" title="Play / pause (Space)" aria-label="Play"></button>
       <button class="tbtn" id="btn-next" type="button" title="Next cue (N)" aria-label="Next cue"></button>
       <button class="tbtn" id="btn-stop" type="button" title="Stop (Esc)" aria-label="Stop"></button>

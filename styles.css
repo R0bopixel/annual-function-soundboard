@@ -352,6 +352,10 @@ select {
   grid-template-columns: 340px minmax(0, 1fr);
 }
 
+.layout.with-checklist {
+  grid-template-columns: 340px minmax(0, 1fr) 330px;
+}
+
 /* ---------- sidebar ---------- */
 
 .sidebar {
@@ -1711,4 +1715,221 @@ input[type="range"]::-moz-range-thumb {
   font-size: clamp(14px, 1.6vw, 18px);
   color: var(--accent-2);
   text-shadow: 0 2px 20px rgba(0, 0, 0, 0.85);
+}
+
+/* ---------- run-of-show checklist ---------- */
+
+.checklist-panel {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid var(--line);
+  background: rgba(18, 22, 28, 0.55);
+}
+
+.checklist-panel.hidden {
+  display: none;
+}
+
+.checklist-head {
+  flex: none;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 18px 14px 10px;
+}
+
+.checklist-head h2 {
+  margin: 0;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.checklist-sub {
+  margin: 3px 0 0;
+  font-size: 11px;
+  color: var(--muted-2);
+}
+
+.checklist-head-actions {
+  display: flex;
+  gap: 4px;
+  flex: none;
+}
+
+.checklist-progress {
+  flex: none;
+  padding: 0 14px 10px;
+}
+
+.checklist-progress-track {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--panel-3);
+  overflow: hidden;
+}
+
+.checklist-progress-track span {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  transition: width 0.25s ease;
+}
+
+.checklist-progress-text {
+  margin-top: 4px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--muted-2);
+  text-align: right;
+}
+
+.checklist {
+  list-style: none;
+  margin: 0;
+  padding: 0 10px 12px;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+
+.checklist-item {
+  list-style: none;
+}
+
+.checklist-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+}
+
+.checklist-row:hover {
+  background: var(--panel-2);
+}
+
+.checklist-check {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+  flex: none;
+  cursor: pointer;
+}
+
+.checklist-label {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 550;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.checklist-label.done {
+  color: var(--muted-2);
+  text-decoration: line-through;
+}
+
+.checklist-link-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+  flex: none;
+}
+
+.checklist-children {
+  list-style: none;
+  margin: 0 0 0 14px;
+  padding: 0 0 0 18px;
+  border-left: 1px solid var(--line);
+}
+
+.checklist-children .checklist-label {
+  font-size: 12.5px;
+  font-weight: 450;
+  color: var(--muted);
+}
+
+.checklist-children .checklist-label.done {
+  color: var(--muted-2);
+}
+
+.checklist-action {
+  width: 26px;
+  height: 26px;
+  flex: none;
+  font-size: 13px;
+}
+
+.checklist-add-wrap {
+  flex: none;
+  padding: 0 14px 14px;
+}
+
+.checklist-add-wrap .btn {
+  width: 100%;
+  justify-content: center;
+}
+
+.checklist-empty {
+  padding: 22px 10px;
+  text-align: center;
+  font-size: 12.5px;
+  color: var(--muted-2);
+}
+
+/* ---------- checklist responsive ---------- */
+
+@media (max-width: 1200px) {
+  .layout.with-checklist {
+    grid-template-columns: 240px minmax(0, 1fr) 260px;
+  }
+
+  .layout.with-checklist .detail {
+    padding: 22px 18px 40px;
+  }
+
+  .layout.with-checklist .detail-title-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .layout.with-checklist .detail-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 900px) {
+  .layout.with-checklist {
+    grid-template-columns: 1fr;
+  }
+
+  .checklist-panel {
+    position: fixed;
+    top: 74px;
+    right: 0;
+    bottom: 190px;
+    width: min(360px, 92vw);
+    z-index: 25;
+    background: var(--bg-soft);
+    border-left: 1px solid var(--line);
+    box-shadow: -24px 0 60px rgba(0, 0, 0, 0.45);
+  }
+}
+
+@media (max-width: 620px) {
+  .checklist-panel {
+    top: 64px;
+  }
 }

@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "events": [
     {
       "name": "Intro",
@@ -29,7 +29,21 @@
       ]
     },
     {
-      "name": "Act 3 · ABBA, Elvis & Beatles",
+      "name": "Act 3 · Aryabhatt",
+      "time": "",
+      "notes": "Six ACT cues in order. 'ACT 5 · Count on Me' points at count on me.mpeg, which isn't in audio/ yet — only a broken 8.6KB act 5 count on me.mp3 is there (0.3s long). Needs the real file.",
+      "status": "pending",
+      "cues": [
+        { "label": "ACT 1 · Aryabhata", "file": "ACT 1 Aryabhata_The_Zero_Pioneer_English_Song_DID-TB_Series_Master_of_Mathematics.mp3", "duration": 318.379 },
+        { "label": "ACT 2 · Mr. Moon", "file": "ACT 2 MR. MOON.mp3", "duration": 142.63 },
+        { "label": "ACT 3 · Planets", "file": "act 3 planets.mp3", "duration": 192.721 },
+        { "label": "ACT 4 · Stars", "file": "act 4 stars.mp3", "duration": 143.245 },
+        { "label": "ACT 5 · Count on Me", "file": "count on me.mpeg", "duration": 170.992 },
+        { "label": "ACT 6 · Happy", "file": "act 6 happy.mp3", "duration": 232.2 }
+      ]
+    },
+    {
+      "name": "Act 4 · ABBA, Elvis & Beatles",
       "time": "",
       "notes": "Medley only.",
       "status": "pending",
@@ -38,7 +52,7 @@
       ]
     },
     {
-      "name": "Act 4 · Chuck Berry",
+      "name": "Act 5 · Chuck Berry",
       "time": "",
       "notes": "Chuck Berry.",
       "status": "pending",
@@ -47,7 +61,7 @@
       ]
     },
     {
-      "name": "Act 5 · Shakuntala",
+      "name": "Act 6 · Shakuntala",
       "time": "",
       "notes": "One continuous act. Cues play in order. Most AV cues below still need an audio file attached via Audio folder / Add audio — only Piya Ki Nazariya, Durvasa Dance, and Subh Din Aayo are linked to existing files.",
       "status": "pending",
@@ -72,7 +86,7 @@
       ]
     },
     {
-      "name": "Act 6 · Charlie Chaplin",
+      "name": "Act 7 · Charlie Chaplin",
       "time": "",
       "notes": "",
       "status": "pending",
@@ -81,7 +95,7 @@
       ]
     },
     {
-      "name": "Act 7 · Bhagat Singh",
+      "name": "Act 8 · Bhagat Singh",
       "time": "",
       "notes": "One continuous act. Cues play in order. Tribute/Jhansi Laxmi/Chota Bhagat/Ram Ram/Desh Nhi Jhukne Dunga/Rang De Basanti are linked — double check those links are right. Nukkad Natak, Baisakhi, Uri Song, and the 3 Dialogue cues still need a file (candidates sitting in audio/: the two 'Ayush...' dialogue scenes, Bhangra with shoot out, Execution sound followed by Kesari).",
       "status": "pending",
@@ -105,5 +119,32 @@
         { "label": "Nukkad Natak AV" }
       ]
     }
+  ],
+  "checklist": [
+    { "label": "Intro", "checked": false },
+    { "label": "Act 1 · Classical", "checked": false },
+    { "label": "Act 2 · Choir", "checked": false },
+    { "label": "Act 3 · Aryabhatt", "checked": false },
+    { "label": "Act 4 · ABBA, Elvis & Beatles", "checked": false },
+    { "label": "Act 5 · Chuck Berry", "checked": false },
+    {
+      "label": "Act 6 · Shakuntala",
+      "checked": false,
+      "children": [
+        { "label": "Opening", "checked": false },
+        { "label": "Garden dance", "checked": false },
+        { "label": "Act 1", "checked": false },
+        { "label": "Piya ki nazariya dance", "checked": false },
+        { "label": "Act 2", "checked": false },
+        { "label": "Durvasa dance", "checked": false },
+        { "label": "Act 3", "checked": false },
+        { "label": "Act 4", "checked": false },
+        { "label": "Act 5", "checked": false },
+        { "label": "Act 6", "checked": false },
+        { "label": "Shubh din aayo dance", "checked": false }
+      ]
+    },
+    { "label": "Act 7 · Charlie Chaplin", "checked": false },
+    { "label": "Act 8 · Bhagat Singh", "checked": false }
   ]
 }

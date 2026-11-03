@@ -8,13 +8,7 @@ A local-first soundboard and run-of-show manager for an annual function. It keep
 2. The app loads the run of show from `show.json` on first run.
 3. Press **Start event** to begin the first cue.
 
-The audio library is read from:
-
-```
-C:\Users\akshu\Videos\chinmay\ffmpeg-master-latest-win64-gpl\ffmpeg-master-latest-win64-gpl\bin\Mp3s
-```
-
-That path is set in **`config.json`**. Change it if you move the audio folder.
+The audio library is read from the folder set in **`config.json`** (`audioDir`). By default that's the local `audio/` folder next to this project — change it if you move the audio elsewhere, or point it at a different folder per machine.
 
 ## Pre-loaded run of show
 
@@ -22,36 +16,27 @@ On first run the app creates these events from `show.json`:
 
 | # | Event | Audio |
 | --- | --- | --- |
+| — | Intro | `Intro AV` (file not linked yet) |
 | 1 | Act 1 · Classical | `classical.mp3` |
-| 3 | Act 3 · ABBA, Elvis & Beatles | `medley.mp3` |
-| 4 | Act 4 · Chuck Berry | `chuckberry.mp3` |
-| 5 | Act 5 · Shakuntala | 15 cues, in the order below |
-| 6 | Act 6 · Charlie Chaplin | No audio yet |
-| 7 | Act 7 · Bhagat Singh | No audio yet |
+| 2 | Act 2 · Choir | No audio yet |
+| 3 | Act 3 · Aryabhatt | 6 ACT cues, in order |
+| 4 | Act 4 · ABBA, Elvis & Beatles | `medley.mp3` |
+| 5 | Act 5 · Chuck Berry | `chuckberry.mp3` |
+| 6 | Act 6 · Shakuntala | 17 cues (incl. 5 blackout markers), in the order below |
+| 7 | Act 7 · Charlie Chaplin | `charlie chaplin.mp3` |
+| 8 | Act 8 · Bhagat Singh | 17 cues (incl. 3 blackout markers), in the order below |
 
-**Shakuntala cue order:**
+**Act 3 · Aryabhatt cue order:** ACT 1 · Aryabhata, ACT 2 · Mr. Moon, ACT 3 · Planets, ACT 4 · Stars, ACT 5 · Count on Me, ACT 6 · Happy. ACT 5's file (`count on me.mpeg`) isn't in `audio/` yet — only a broken 0.3-second placeholder (`act 5 count on me.mp3`) is there.
 
-1. Narration (flute music)
-2. 2chankaya
-3. Chirping of birds
-4. Horse footsteps
-5. Garden music
-6. Piya ki nazariya + wedding song
-7. Viraha flute
-8. Chaurasiya alaap
-9. Final Durvasa
-10. Chaurasiya alaap (reprise)
-11. Fisherman final
-12. King Dushyant court music
-13. Bharat Dushyant milaap
-14. Final narration
-15. Shubh din aayo
+**Act 6 · Shakuntala cue order:** Narration AV → Chanakya Dance AV → Narration AV (Aashram) → *BLACK OUT* → Act AV (Aashram) → Piya Ki Nazariya → Act AV (Aashram) → Durvasa Dance → Act AV (Aashram) → *BLACK OUT* → Act AV (Raj Mahal) → *BLACK OUT* → Act AV (Raj Mahal) → *BLACK OUT* → Narration AV (Forest) → *BLACK OUT* → Subh Din Aayo. Only Piya Ki Nazariya, Durvasa Dance, and Subh Din Aayo have files linked — the rest need one attached via Audio folder / Add audio.
 
-Acts 6 and 7 are ready and waiting for their audio files. To reload `show.json` after deleting the events, clear the browser data for `localhost:8080` and reload.
+**Act 8 · Bhagat Singh cue order:** Tribute AV → Nukkad Natak AV → Jhansi Laxmi AV → Nukkad Natak AV → Chota Bhagata Act AV → Baisakhi AV → *BLACK OUT (Narration)* → Ram Ram AV → *BLACK OUT (Narration)* → Desh Nhi Jhukne Dunga AV → *BLACK OUT (Narration)* → Dialogue AV → Uri Song AV → Dialogue AV → Rang De Basanti AV → Dialogue AV → Nukkad Natak AV. Tribute/Jhansi Laxmi/Chota Bhagat/Ram Ram/Desh Nhi Jhukne Dunga/Rang De Basanti have files linked (double check those are the right picks); Nukkad Natak, Baisakhi, Uri Song, and the Dialogue cues still need one.
+
+A *BLACK OUT* line is a stage direction, not a media file — see **Keyboard shortcuts** below for the `B` blackout key. To reload `show.json` after deleting the events, clear the browser data for `localhost:8080` and reload.
 
 ## Audio folder
 
-The folder library reads every supported audio file from the configured folder. The current folder has 45 files, including MP3 and MPEG files.
+The folder library reads every supported audio file from the configured folder. The current folder has 35 files, including MP3 files (a handful of low-quality duplicate re-encodes were moved out to `audio/_low_quality_duplicates/` so they don't get picked by mistake).
 
 - Click **Audio folder** on an event to see the full list.
 - Tick the files you want and press **Add N cues**. They are added in the order shown.
@@ -76,6 +61,8 @@ Cues whose file is MP4/M4V/MOV/MKV/WebM/OGV are treated as **video cues**: start
 - Event list with search, drag-to-reorder, and up/down buttons
 - One or many audio or video cues per event, played in order
 - Video mode: a video cue takes the whole screen over, with a hint for the next cue once it ends — keyboard shortcuts still work
+- Run-of-show checklist side panel, separate from the audio cue list — see below
+- Blackout key (`B`) to cut audio instantly, no fade
 - Audio folder library plus manual file import
 - Per-cue volume, fade-in, and fade-out
 - Auto-advance or manual cue-by-cue playback
@@ -86,6 +73,35 @@ Cues whose file is MP4/M4V/MOV/MKV/WebM/OGV are treated as **video cues**: start
 - Event status tracking and notes
 - Printable run sheet
 - Keyboard shortcuts
+
+## Run-of-show checklist
+
+The **Checklist** button in the top bar opens a side panel with the tentative run of show — a coarser, stage-manager-facing list separate from the audio cue list:
+
+- Intro
+- Act 1 · Classical
+- Act 2 · Choir
+- Act 3 · Aryabhatt
+- Act 4 · ABBA, Elvis & Beatles
+- Act 5 · Chuck Berry
+- Act 6 · Shakuntala
+  - Opening
+  - Garden dance
+  - Act 1
+  - Piya ki nazariya dance
+  - Act 2
+  - Durvasa dance
+  - Act 3
+  - Act 4
+  - Act 5
+  - Act 6
+  - Shubh din aayo dance
+- Act 7 · Charlie Chaplin
+- Act 8 · Bhagat Singh
+
+Tick items as they finish. Use **Edit** to add, rename, or delete items. **Reset** reloads the tentative list from `show.json` and clears the ticks. The checklist opens beside the main interface and shrinks the event panel instead of covering it.
+
+Use **Edit → 🔗** to link an item to an event or a specific cue. When that audio plays, the item checks itself automatically. Clicking a linked item jumps to its event/cue.
 
 ## Keyboard shortcuts
 
@@ -99,7 +115,8 @@ Cues whose file is MP4/M4V/MOV/MKV/WebM/OGV are treated as **video cues**: start
 | `Shift + →` | Next act with audio and start its first cue |
 | `Shift + ←` | Previous act with audio and start its first cue |
 | `N` | Next cue |
-| `B` | Previous cue / restart current |
+| `P` | Previous cue / restart current |
+| `B` | Blackout — cut audio immediately |
 | `Esc` | Stop with fade |
 | `↑` / `↓` | Select previous / next event |
 | `?` | Show the shortcut help |
