@@ -1,0 +1,4 @@
+{
+  "url": "http://YOUR_VPS_IP:8090/api/progress",
+  "key": "same key as the VPS' progress-tracker/config.json"
+}

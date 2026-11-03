@@ -186,9 +186,9 @@ def main():
         os.makedirs(AUDIO_DIR, exist_ok=True)
 
     port = int(os.environ.get("PORT", "8080"))
-    server = ThreadingHTTPServer(("127.0.0.1", port), SoundboardHandler)
+    server = ThreadingHTTPServer(("0.0.0.0", port), SoundboardHandler)
     print("Annual Function Soundboard")
-    print(f"  App:   http://localhost:{port}")
+    print(f"  App:   http://localhost:{port} (also reachable on the LAN at this machine's IP)")
     print(f"  Audio: {AUDIO_DIR}")
     if not os.path.isdir(AUDIO_DIR):
         print("  Warning: that audio folder does not exist.")

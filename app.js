@@ -218,6 +218,60 @@ function kindForName(name) {
   return VIDEO_EXT_RE.test(String(name || '')) ? 'video' : 'audio';
 }
 
+/* ---------- progress push (VPS tracker) ----------
+   This machine is the single client for the VPS progress tracker set up
+   separately. The URL + key live in progress.json (gitignored, NOT
+   committed — it has a real API key, this repo is public) instead of
+   here, so a fresh clone just has push disabled until that file exists.
+   Copy progress.json.example, fill it in, same key as the VPS' config.json. */
+
+let progressConfig = null;
+
+async function loadProgressConfig() {
+  try {
+    const res = await fetch('progress.json', { cache: 'no-store' });
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data && data.url && data.key) progressConfig = data;
+  } catch (err) {
+    // progress.json not present — pushing to the VPS tracker is just disabled.
+  }
+}
+
+let progressPushTimer = null;
+
+function pushProgressSoon() {
+  clearTimeout(progressPushTimer);
+  progressPushTimer = setTimeout(pushProgress, 300);
+}
+
+function pushProgress() {
+  if (!progressConfig) return;
+
+  const all = flattenChecklist(state.checklist);
+  const done = all.filter((item) => item.checked).length;
+  const percent = all.length ? Math.round((done / all.length) * 100) : 0;
+
+  const ev = currentEvent() || selectedEvent();
+  const cue = currentCue();
+
+  const payload = {
+    percent,
+    stage: ev ? ev.name : 'Not started',
+    message: cue
+      ? `${cue.label}${state.playback.playing ? ' (playing)' : ' (paused)'}`
+      : (ev ? 'Selected — not started' : ''),
+    checklistDone: done,
+    checklistTotal: all.length,
+  };
+
+  fetch(progressConfig.url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-API-Key': progressConfig.key },
+    body: JSON.stringify(payload),
+  }).catch((err) => console.error('Progress push failed (VPS unreachable?):', err));
+}
+
 /* ---------- icons ---------- */
 
 const ICON = {
@@ -469,6 +523,7 @@ function updateTransport() {
   els.masterVolume.value = String(Math.round(state.settings.masterVolume * 100));
 
   updateVideoStage();
+  pushProgressSoon();
 }
 
 function updateVideoStage() {
@@ -629,6 +684,7 @@ function renderChecklist() {
   els.checklistAddWrap.hidden = !state.checklistEdit;
   els.checklistEditBtn.textContent = state.checklistEdit ? 'Done' : 'Edit';
   els.checklistEditBtn.classList.toggle('active', state.checklistEdit);
+  pushProgressSoon();
 }
 
 function updateChecklistProgress() {
@@ -2496,6 +2552,7 @@ async function seedFromShowFile() {
 
 async function init() {
   bindEvents();
+  loadProgressConfig();
 
   try {
     const [events, settingsRecord, clockRecord, selectedRecord, seededRecord, checklistVisibleRecord] = await Promise.all([
