@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Annual Function · Soundboard</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%23f5a524'/%3E%3Cpath d='M9 17V7l8-1.5v9' stroke='%230a0c10' stroke-width='2' fill='none'/%3E%3Ccircle cx='7' cy='17' r='2' fill='%230a0c10'/%3E%3Ccircle cx='15' cy='15.5' r='2' fill='%230a0c10'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M9 18V5l10-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/></svg>
+      </div>
+      <div class="brand-text">
+        <h1>Annual Function</h1>
+        <p>Soundboard &amp; run of show</p>
+      </div>
+    </div>
+
+    <div class="show-clock">
+      <div class="clock-now" id="clock-now">--:--:--</div>
+      <div class="clock-timer">
+        <span class="clock-label">SHOW</span>
+        <span class="clock-value" id="show-timer">00:00:00</span>
+        <button class="clock-btn" id="clock-toggle" type="button">Start</button>
+        <button class="clock-btn ghost" id="clock-reset" type="button" title="Reset show timer">Reset</button>
+      </div>
+    </div>
+
+    <div class="top-actions">
+      <button class="btn" id="btn-print" type="button">Print run sheet</button>
+      <button class="btn" id="btn-help" type="button">Shortcuts</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-head">
+        <h2>Events <span class="count" id="event-count">0</span></h2>
+        <button class="btn btn-accent" id="btn-add-event" type="button">+ New event</button>
+      </div>
+      <div class="search-wrap">
+        <input id="search" type="search" placeholder="Search events…" autocomplete="off" aria-label="Search events">
+      </div>
+      <ul class="event-list" id="event-list"></ul>
+    </aside>
+
+    <section class="detail" id="detail"></section>
+  </main>
+
+  <footer class="transport">
+    <div class="now-playing">
+      <div class="np-label">Now playing</div>
+      <div class="np-title" id="np-title">Nothing queued</div>
+      <div class="np-sub" id="np-sub">Select an event and press play</div>
+    </div>
+
+    <div class="transport-controls">
+      <button class="tbtn" id="btn-prev" type="button" title="Previous cue (B)" aria-label="Previous cue"></button>
+      <button class="tbtn tbtn-play" id="btn-play" type="button" title="Play / pause (Space)" aria-label="Play"></button>
+      <button class="tbtn" id="btn-next" type="button" title="Next cue (N)" aria-label="Next cue"></button>
+      <button class="tbtn" id="btn-stop" type="button" title="Stop (Esc)" aria-label="Stop"></button>
+    </div>
+
+    <div class="progress-wrap">
+      <span class="time" id="time-current">0:00</span>
+      <input id="seek" type="range" min="0" max="1000" value="0" step="1" aria-label="Seek">
+      <span class="time" id="time-total">0:00</span>
+    </div>
+
+    <div class="transport-right">
+      <label class="switch">
+        <input type="checkbox" id="auto-advance" aria-label="Auto-advance" checked>
+        <span>Auto-advance</span>
+      </label>
+      <div class="volume">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16 8.5a5 5 0 0 1 0 7"/><path d="M18.5 6a8.5 8.5 0 0 1 0 12"/></svg>
+        <input id="master-volume" type="range" min="0" max="100" value="90" aria-label="Master volume">
+      </div>
+    </div>
+  </footer>
+
+  <dialog class="modal" id="modal"></dialog>
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+  <div class="print-sheet" id="print-sheet"></div>
+
+  <div class="video-stage" id="video-stage" hidden>
+    <video id="video-el" playsinline></video>
+    <div class="video-hint" id="video-hint" hidden>
+      <div class="video-hint-title" id="video-hint-title"></div>
+      <div class="video-hint-sub" id="video-hint-sub"></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
