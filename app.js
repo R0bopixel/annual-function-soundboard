@@ -420,7 +420,7 @@ function renderDetail() {
     <div class="drop-hint">
       Press <strong>→</strong> for the next act, then <strong>1</strong> to start its first cue. <strong>Shift + →</strong> does both.
       <br>${keyHint}
-      <br><strong>B</strong> = blackout (cut audio immediately).
+      <br><strong>B</strong> = blackout (cut audio immediately). <strong>A</strong> = tick off the next anchoring/narration checklist item.
       <br>Drop audio files anywhere on this panel to add them as cues.
     </div>
   `;
@@ -814,6 +814,20 @@ function setChecklistVisible(visible) {
   saveMeta('checklistVisible', visible).catch(console.error);
 }
 
+const NARRATION_RE = /anchoring|narration/i;
+
+function tickNextNarrationItem() {
+  const next = flattenChecklist(state.checklist).find((item) => !item.checked && NARRATION_RE.test(item.label));
+  if (!next) {
+    toast('No anchoring/narration items left to tick.');
+    return;
+  }
+  next.checked = true;
+  saveChecklist();
+  renderChecklist();
+  toast(`Ticked: ${next.label}`);
+}
+
 /* ---------- playback ---------- */
 
 function targetVolume(cue) {
@@ -896,8 +910,6 @@ async function startPlayback() {
   if (cueIndex >= 9 && state.playback.eventId) {
     state.cueKeyMode[state.playback.eventId] = true;
   }
-
-  autoCheckChecklistForCue(state.playback.eventId, state.playback.cueId);
 
   fadeTo(targetVolume(cue), cue.fadeIn ?? 0.3);
   markEventLive(state.playback.eventId);
@@ -1151,6 +1163,8 @@ function onMediaEnded() {
   if (!ev) return;
   const index = currentCueIndex();
   const next = ev.cues[index + 1];
+
+  autoCheckChecklistForCue(state.playback.eventId, state.playback.cueId);
 
   if (state.settings.autoAdvance && next) {
     /* Cue up the next cue so it's ready to go, but wait for the operator
@@ -1727,6 +1741,7 @@ function openHelp() {
         <kbd>N</kbd><span>Next cue</span>
         <kbd>P</kbd><span>Previous cue / restart</span>
         <kbd>B</kbd><span>Blackout — cut audio immediately</span>
+        <kbd>A</kbd><span>Tick off the next anchoring/narration checklist item</span>
         <kbd>Esc</kbd><span>Stop with fade</span>
         <kbd>↑ / ↓</kbd><span>Select previous / next event</span>
         <kbd>?</kbd><span>Show this help</span>
@@ -1979,6 +1994,11 @@ function onGlobalKeydown(e) {
     case 'P':
       e.preventDefault();
       prevCue();
+      break;
+    case 'a':
+    case 'A':
+      e.preventDefault();
+      tickNextNarrationItem();
       break;
     case 'Escape':
       e.preventDefault();

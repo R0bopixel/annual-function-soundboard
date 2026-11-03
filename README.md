@@ -63,6 +63,7 @@ Cues whose file is MP4/M4V/MOV/MKV/WebM/OGV are treated as **video cues**: start
 - Video mode: a video cue takes the whole screen over, with a hint for the next cue once it ends — keyboard shortcuts still work
 - Run-of-show checklist side panel, separate from the audio cue list — see below
 - Blackout key (`B`) to cut audio instantly, no fade
+- Checklist items auto-tick when their linked cue finishes playing; `A` manually ticks the next anchoring/narration beat
 - Audio folder library plus manual file import
 - Per-cue volume, fade-in, and fade-out
 - Auto-advance or manual cue-by-cue playback
@@ -76,32 +77,35 @@ Cues whose file is MP4/M4V/MOV/MKV/WebM/OGV are treated as **video cues**: start
 
 ## Run-of-show checklist
 
-The **Checklist** button in the top bar opens a side panel with the tentative run of show — a coarser, stage-manager-facing list separate from the audio cue list:
+The **Checklist** button in the top bar opens a side panel with the tentative run of show — a coarser, stage-manager-facing list separate from the audio cue list. Every act transition is bracketed by an "Anchoring (BO)" item (the anchor talks, then a blackout before the next act):
 
-- Intro
-- Act 1 · Classical
-- Act 2 · Choir
-- Act 3 · Aryabhatt
-- Act 4 · ABBA, Elvis & Beatles
-- Act 5 · Chuck Berry
-- Act 6 · Shakuntala
-  - Opening
-  - Garden dance
-  - Act 1
-  - Piya ki nazariya dance
-  - Act 2
-  - Durvasa dance
-  - Act 3
-  - Act 4
-  - Act 5
-  - Act 6
-  - Shubh din aayo dance
-- Act 7 · Charlie Chaplin
-- Act 8 · Bhagat Singh
+- Anchoring (BO)
+- Classical
+- Anchoring (BO)
+- Choir
+- Aryabhatta
+  - Narration / Act 1 / Narration / Act 2 / … through Act 6
+- Anchoring (BO)
+- ABBA, Elvis, Beatles
+- Anchoring (BO)
+- Chuck Berry
+- Anchoring (BO)
+- Shakuntala
+  - Act 1, Act 2, Piya Ki Nazariya, Act 3, Durvasa Dance, Act 4–7, Shubh Din Aayo
+- Anchoring (BO)
+- Charlie Chaplin
+- Anchoring (BO)
+- Bhagat Singh
+  - Tribute AV, Nukkad Natak AV, Jhansi Laxmi AV, Nukkad Natak AV, Chota Bhagata Act AV, Baisakhi AV, *BLACK OUT (Narration)*, Ram Ram AV, *BLACK OUT (Narration)*, Desh Nhi Jhukne Dunga AV, *BLACK OUT (Narration)*, Dialogue AV, Uri Song AV, Dialogue AV, Rang De Basanti AV, Dialogue AV, Nukkad Natak AV
+- Blackout (closing)
+
+None of these are linked to a song yet — that's a separate pass (see Edit → 🔗 below).
 
 Tick items as they finish. Use **Edit** to add, rename, or delete items. **Reset** reloads the tentative list from `show.json` and clears the ticks. The checklist opens beside the main interface and shrinks the event panel instead of covering it.
 
-Use **Edit → 🔗** to link an item to an event or a specific cue. When that audio plays, the item checks itself automatically. Clicking a linked item jumps to its event/cue.
+Use **Edit → 🔗** to link an item to an event or a specific cue. When that audio *finishes playing*, the linked item checks itself automatically. Clicking a linked item jumps to its event/cue.
+
+Anchoring and narration items aren't tied to audio — a human is talking, not a soundboard cue — so they're ticked with the **A** key instead: it finds the next unchecked item whose label contains "Anchoring" or "Narration" (in list order) and checks it off.
 
 ## Keyboard shortcuts
 
@@ -117,6 +121,7 @@ Use **Edit → 🔗** to link an item to an event or a specific cue. When that a
 | `N` | Next cue |
 | `P` | Previous cue / restart current |
 | `B` | Blackout — cut audio immediately |
+| `A` | Tick off the next anchoring/narration checklist item |
 | `Esc` | Stop with fade |
 | `↑` / `↓` | Select previous / next event |
 | `?` | Show the shortcut help |

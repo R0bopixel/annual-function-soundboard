@@ -121,30 +121,75 @@
     }
   ],
   "checklist": [
-    { "label": "Intro", "checked": false },
-    { "label": "Act 1 · Classical", "checked": false },
-    { "label": "Act 2 · Choir", "checked": false },
-    { "label": "Act 3 · Aryabhatt", "checked": false },
-    { "label": "Act 4 · ABBA, Elvis & Beatles", "checked": false },
-    { "label": "Act 5 · Chuck Berry", "checked": false },
+    { "label": "Anchoring (BO)", "checked": false },
+    { "label": "Classical", "checked": false },
+    { "label": "Anchoring (BO)", "checked": false },
+    { "label": "Choir", "checked": false },
     {
-      "label": "Act 6 · Shakuntala",
+      "label": "Aryabhatta",
       "checked": false,
       "children": [
-        { "label": "Opening", "checked": false },
-        { "label": "Garden dance", "checked": false },
+        { "label": "Narration", "checked": false },
         { "label": "Act 1", "checked": false },
-        { "label": "Piya ki nazariya dance", "checked": false },
+        { "label": "Narration", "checked": false },
         { "label": "Act 2", "checked": false },
-        { "label": "Durvasa dance", "checked": false },
+        { "label": "Narration", "checked": false },
         { "label": "Act 3", "checked": false },
+        { "label": "Narration", "checked": false },
+        { "label": "Act 4", "checked": false },
+        { "label": "Narration", "checked": false },
+        { "label": "Act 5", "checked": false },
+        { "label": "Narration", "checked": false },
+        { "label": "Act 6", "checked": false }
+      ]
+    },
+    { "label": "Anchoring (BO)", "checked": false },
+    { "label": "ABBA, Elvis, Beatles", "checked": false },
+    { "label": "Anchoring (BO)", "checked": false },
+    { "label": "Chuck Berry", "checked": false },
+    { "label": "Anchoring (BO)", "checked": false },
+    {
+      "label": "Shakuntala",
+      "checked": false,
+      "children": [
+        { "label": "Act 1", "checked": false },
+        { "label": "Act 2", "checked": false },
+        { "label": "Piya Ki Nazariya", "checked": false },
+        { "label": "Act 3", "checked": false },
+        { "label": "Durvasa Dance", "checked": false },
         { "label": "Act 4", "checked": false },
         { "label": "Act 5", "checked": false },
         { "label": "Act 6", "checked": false },
-        { "label": "Shubh din aayo dance", "checked": false }
+        { "label": "Act 7", "checked": false },
+        { "label": "Shubh Din Aayo", "checked": false }
       ]
     },
-    { "label": "Act 7 · Charlie Chaplin", "checked": false },
-    { "label": "Act 8 · Bhagat Singh", "checked": false }
+    { "label": "Anchoring (BO)", "checked": false },
+    { "label": "Charlie Chaplin", "checked": false },
+    { "label": "Anchoring (BO)", "checked": false },
+    {
+      "label": "Bhagat Singh",
+      "checked": false,
+      "children": [
+        { "label": "Tribute AV", "checked": false },
+        { "label": "Nukkad Natak AV", "checked": false },
+        { "label": "Jhansi Laxmi AV", "checked": false },
+        { "label": "Nukkad Natak AV", "checked": false },
+        { "label": "Chota Bhagata Act AV", "checked": false },
+        { "label": "Baisakhi AV", "checked": false },
+        { "label": "BLACK OUT (Narration)", "checked": false },
+        { "label": "Ram Ram AV", "checked": false },
+        { "label": "BLACK OUT (Narration)", "checked": false },
+        { "label": "Desh Nhi Jhukne Dunga AV", "checked": false },
+        { "label": "BLACK OUT (Narration)", "checked": false },
+        { "label": "Dialogue AV", "checked": false },
+        { "label": "Uri Song AV", "checked": false },
+        { "label": "Dialogue AV", "checked": false },
+        { "label": "Rang De Basanti AV", "checked": false },
+        { "label": "Dialogue AV", "checked": false },
+        { "label": "Nukkad Natak AV", "checked": false }
+      ]
+    },
+    { "label": "Blackout", "checked": false }
   ]
 }
