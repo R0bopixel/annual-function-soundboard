@@ -545,14 +545,22 @@ function updateProgress() {
 /* ---------- run-of-show checklist ---------- */
 
 function normalizeChecklist(items) {
-  return (Array.isArray(items) ? items : []).map((item) => ({
-    id: uid(),
-    label: String(item.label || 'Untitled'),
-    checked: Boolean(item.checked),
-    eventId: item.eventId || null,
-    cueId: item.cueId || null,
-    children: normalizeChecklist(item.children),
-  }));
+  return (Array.isArray(items) ? items : []).map((item) => {
+    const songs = Array.isArray(item.songs) ? item.songs.map(String) : [];
+    const songsDone = Array.isArray(item.songsDone) && item.songsDone.length === songs.length
+      ? item.songsDone.map(Boolean)
+      : songs.map(() => false);
+    return {
+      id: uid(),
+      label: String(item.label || 'Untitled'),
+      checked: Boolean(item.checked),
+      eventId: item.eventId || null,
+      cueId: item.cueId || null,
+      songs,
+      songsDone,
+      children: normalizeChecklist(item.children),
+    };
+  });
 }
 
 function flattenChecklist(items) {
@@ -636,6 +644,23 @@ function saveChecklist() {
   saveMeta('checklist', state.checklist).catch(console.error);
 }
 
+function cascadeChecklistParents(items = state.checklist) {
+  let changed = false;
+  const visit = (list) => {
+    for (const item of list) {
+      if (Array.isArray(item.children) && item.children.length) {
+        visit(item.children);
+        if (item.children.every((child) => child.checked) && !item.checked) {
+          item.checked = true;
+          changed = true;
+        }
+      }
+    }
+  };
+  visit(items);
+  return changed;
+}
+
 function autoCheckChecklistForCue(eventId, cueId) {
   if (!eventId || !cueId) return;
 
@@ -659,23 +684,54 @@ function autoCheckChecklistForCue(eventId, cueId) {
   };
   visit(state.checklist);
 
-  const checkParents = (items) => {
-    for (const item of items) {
-      if (Array.isArray(item.children) && item.children.length) {
-        checkParents(item.children);
-        if (item.children.every((child) => child.checked) && !item.checked) {
-          item.checked = true;
-          changed = true;
-        }
-      }
-    }
-  };
-  checkParents(state.checklist);
+  if (cascadeChecklistParents()) changed = true;
 
   if (changed) {
     saveChecklist();
     renderChecklist();
   }
+}
+
+function cueFileName(cue) {
+  if (!cue || typeof cue.src !== 'string') return null;
+  const prefix = 'media/';
+  if (!cue.src.startsWith(prefix)) return null;
+  try {
+    return decodeURIComponent(cue.src.slice(prefix.length));
+  } catch (err) {
+    return null;
+  }
+}
+
+/* Ticks the checklist off a finished *song*, not an event/cue id — this is for
+   items (like Shakuntala's "Act 2") that need several specific files to finish,
+   possibly reusing the same filename across several items in a row. Only the
+   first still-open item needing this filename consumes the play; later repeats
+   of the same file move on to the next item in list order. */
+function onSongPlayed(filename) {
+  if (!filename) return;
+
+  const items = flattenChecklist(state.checklist);
+  let matched = null;
+
+  for (const item of items) {
+    if (item.checked || !Array.isArray(item.songs) || !item.songs.length) continue;
+    if (!Array.isArray(item.songsDone) || item.songsDone.length !== item.songs.length) {
+      item.songsDone = item.songs.map(() => false);
+    }
+    const idx = item.songs.findIndex((s, i) => s === filename && !item.songsDone[i]);
+    if (idx === -1) continue;
+    item.songsDone[idx] = true;
+    if (item.songsDone.every(Boolean)) item.checked = true;
+    matched = item;
+    break;
+  }
+
+  if (!matched) return;
+
+  cascadeChecklistParents();
+  saveChecklist();
+  renderChecklist();
 }
 
 async function loadOrSeedChecklist() {
@@ -1163,8 +1219,10 @@ function onMediaEnded() {
   if (!ev) return;
   const index = currentCueIndex();
   const next = ev.cues[index + 1];
+  const endedCue = ev.cues.find((c) => c.id === state.playback.cueId);
 
   autoCheckChecklistForCue(state.playback.eventId, state.playback.cueId);
+  onSongPlayed(cueFileName(endedCue));
 
   if (state.settings.autoAdvance && next) {
     /* Cue up the next cue so it's ready to go, but wait for the operator

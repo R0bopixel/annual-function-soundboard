@@ -107,6 +107,8 @@ Use **Edit → 🔗** to link an item to an event or a specific cue. When that a
 
 Anchoring and narration items aren't tied to audio — a human is talking, not a soundboard cue — so they're ticked with the **A** key instead: it finds the next unchecked item whose label contains "Anchoring" or "Narration" (in list order) and checks it off.
 
+Checklist items can also be linked to one or more **song filenames** directly in `show.json` (a `songs` array per item) — not an event/cue id, a filename, matched against whatever cue just finished. An item with several songs (e.g. Shakuntala's "Act 2": horse footsteps, chirping of birds, garden music) only ticks once *all* of them have finished playing. If the same filename is reused back-to-back for several items (e.g. "Chaurasiya Alaap" backs Shakuntala's Act 3, 4, and 5 in a row), each finished play satisfies the earliest still-open item needing it, in order — so the three tick off one at a time as the track is replayed, not all at once on the first play. Currently linked this way: Classical, all of Aryabhatta's Act 1–6, ABBA/Elvis/Beatles, Chuck Berry, and all of Shakuntala's children. Charlie Chaplin and Bhagat Singh aren't linked yet.
+
 ## Keyboard shortcuts
 
 | Key | Action |
